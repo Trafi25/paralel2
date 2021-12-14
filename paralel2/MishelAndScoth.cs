@@ -9,14 +9,14 @@ namespace paralel2
     {
         public class Node<T>
         {
-            public Node<T> Next;
+            public Node<T> Next { get; set; }
 
             int count;
             public T Data { get; set; }
-            public Node(T data, Node<T> next)
+            public Node(T data)
             {
                 this.Data = data;
-                this.Next = next;
+                Next = null; ;
             }
         }
 
@@ -27,14 +27,14 @@ namespace paralel2
 
         public MishelAndScoth()
         {
-            Head = new Node<T>(default, null);
+            Head = new Node<T>(default);
             Tail = Head;
 
         }
 
         public void Push(T value)
         {
-            var NewNode = new Node<T>(value, null);
+            var NewNode = new Node<T>(value);
             do
             {
                 Temp = Head;
@@ -44,9 +44,9 @@ namespace paralel2
                 }
                 else
                 {
-                    Interlocked.CompareExchange(ref Tail, Temp, NewNode);
+                    CAS(ref Tail, Temp, NewNode);
                 }
-            } while (Interlocked.CompareExchange(ref Head, NewNode, Temp) != Temp);
+            } while (!CAS(ref Head, NewNode, Temp));
            
         }
 
@@ -61,19 +61,24 @@ namespace paralel2
 
                 if (tempHead == tempTail)
                 {
-                    Interlocked.CompareExchange(ref Tail, next, tempTail);
+                    CAS(ref Tail, next, tempTail);
                 }
                 else
                 {
                     result = next.Data;
-                    if (Interlocked.CompareExchange(ref Head, next, tempHead) == tempHead)
+                    if (CAS(ref Head, next, tempHead))
                     {
                         return true;
                     }
                 }
             }
         }
-        
+
+        private bool CAS(ref Node<T> compare, Node<T> swapVal, Node<T> compareVal)
+        {
+            return Interlocked.CompareExchange<Node<T>>(ref compare, swapVal, compareVal) == compareVal;
+        }
+
 
     }
     
