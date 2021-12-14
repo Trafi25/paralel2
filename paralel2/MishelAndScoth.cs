@@ -22,9 +22,10 @@ namespace paralel2
 
         public Node<T> Head;
         public Node<T> Tail;
+        public Node<T> Temp;
 
 
-       public MishelAndScoth()
+        public MishelAndScoth()
         {
             Head = new Node<T>(default, null);
             Tail = Head;
@@ -34,28 +35,19 @@ namespace paralel2
         public void Push(T value)
         {
             var NewNode = new Node<T>(value, null);
-
-            while (true)
+            do
             {
-                var tempTail = Tail;
-               
-                var tailNext = tempTail.Next;
-                
-                if (tailNext == null)
+                Temp = Head;
+                if (Temp != null)
                 {
-                    if (Interlocked.CompareExchange(ref tempTail.Next, NewNode, tailNext) != tailNext)
-                    {
-                        continue;
-                    }
-                    Interlocked.CompareExchange(ref Tail, NewNode, tempTail);
-                    return;
+                    NewNode.Next = Temp;
                 }
                 else
                 {
-                    Interlocked.CompareExchange(ref Tail, tailNext, tempTail);
-                    continue;
+                    Interlocked.CompareExchange(ref Tail, Temp, NewNode);
                 }
-            }
+            } while (Interlocked.CompareExchange(ref Head, NewNode, Temp) != Temp);
+           
         }
 
         public bool Delete(out T result)
@@ -65,14 +57,7 @@ namespace paralel2
                 var tempHead = Head;
                 var tempTail = Tail;
                
-                var next = tempHead.Next;
-
-                if (tempHead != Head) continue;
-                if (next == null)
-                {
-                    result = default(T);
-                    return false;
-                }
+                var next = tempHead.Next;                           
 
                 if (tempHead == tempTail)
                 {
@@ -88,6 +73,8 @@ namespace paralel2
                 }
             }
         }
+        
+
     }
     
 }

@@ -14,7 +14,7 @@ namespace paralel2
             run.Start(test, 5);
             run.Runthreds();
             PrintQueueForm(test);
-            int help;
+            int help;           
             test.Delete(out help);
             Console.WriteLine($"{help} was removed");
             PrintQueueForm(test);
